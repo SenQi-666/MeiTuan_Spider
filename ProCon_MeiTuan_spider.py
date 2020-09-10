@@ -117,6 +117,8 @@ class Consumer(Thread):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) \
                                    Chrome/83.0.4103.106 Safari/537.36'
         }
+        self.Client = pymongo.MongoClient('mongodb://%s:%s@%s:%s/' % ('root', None, 'localhost', 27017))
+        self.Collection = self.Client['MeiTuan']['Data']
         self.biz_que = biz_que
         self.ip_lst = ip_lst
 
@@ -148,6 +150,16 @@ class Consumer(Thread):
                 info_dict['openTime'], info_dict['avgScore'], info_dict['avgPrice']
             )
             print(biz_info)
+            
+            biz_dict = {
+                '店铺名': info_dict['name'],
+                '地址': info_dict['address'],
+                '电话': info_dict['phone'],
+                '营业时间': info_dict['openTime'],
+                '评分': info_dict['avgScore'],
+                '人均': info_dict['avgPrice']
+            }
+        self.Collection.insert_one(biz_dict)
         except Exception as e:
             self.get_info(url)
             print(e)
