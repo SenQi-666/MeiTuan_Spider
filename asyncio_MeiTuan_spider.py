@@ -24,6 +24,8 @@ class MeiTuanSpider:
         }
         self.acronym_queue = Queue()
         self.poi_queue = asyncio.Queue()
+        self.Client = pymongo.MongoClient('mongodb://%s:%s@%s:%s/' % ('root', None, 'localhost', 27017))
+        self.Collection = self.Client['MeiTuan']['Data']
         self.ip_lst = []
 
     def get_acronym(self):
@@ -118,14 +120,23 @@ class MeiTuanSpider:
     def acronym_func(dic):
         return {key: value for key, value in dic.items() if key == 'acronym' or key == 'name'}
 
-    @staticmethod
-    def callback(task):
+    def callback(self, task):
         result = task.result()
         biz_info = '店铺名：%s  地址：%s  电话：%s  营业时间：%s  评分：%s  人均：%s' % (
             result['name'], result['address'], result['phone'],
             result['openTime'], result['avgScore'], result['avgPrice']
         )
         print(biz_info)
+        
+        biz_dict = {
+            '店铺名': result['name'],
+            '地址': result['address'],
+            '电话': result['phone'],
+            '营业时间': result['openTime'],
+            '评分': result['avgScore'],
+            '人均': result['avgPrice']
+        }
+        self.Collection.insert_one(biz_dict)
 
     def main(self):
         self.get_acronym()
